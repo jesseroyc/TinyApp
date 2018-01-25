@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+	<body style="font-size:20px; padding:50px;">
+		<header><% include partials/_header %></header>
+
+		<% 	for(var url in urls) { %>
+
+		<ul><strong><a href="<%= urls[url] %>"><%= urls[url] %></a></strong></ul>
+		
+		<% 	} %>
+	</body>
+</html>
