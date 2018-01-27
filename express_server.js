@@ -34,8 +34,6 @@ app.listen(PORT, () => {
 
 app.listen(3000);
 
-var user = database.users[""];
-
 const urlDatabase = {
   'b2xVn2': "http://www.lighthouselabs.ca",
   '9sm5xK': "http://www.google.com"
@@ -55,9 +53,8 @@ const urlDatabase = {
 //LOCALHOST:8080/index
 app.get('/', (req, res) => {
 
-  //const userId = req.session.userId;
   const userId = req.session.userId;
-  let user; 
+  let user;
   if (userId) {
     user = database.users[userId];
   }
@@ -86,27 +83,74 @@ app.get("/urls.json", (req, res) => {
 });
 
 //LOCALHOST:8080/INDEX/NEW
-app.get("/index/new", (req, res) => {
-  res.render("index_new");
+app.get("/new", (req, res) => {
+
+  const userId = req.session.userId;
+  let user;
+  if (userId) {
+    user = database.users[userId];
+  }
+
+  const temp = {
+    urls: urlDatabase
+  };
+
+
+  res.render("index_new", { user, temp, urlDatabase });
 });
 
 //LOCALHOST:8080/U/${SHORTURL} : === "req.params"
 app.get("/u/:shortURL/", (req, res) => {
-	let longURL = urlDatabase[req.params['shortURL']];
-	res.redirect(longURL);
+  const userId = req.session.userId;
+  let user;
+  if (userId) {
+    user = database.users[userId];
+  }
+
+  const temp = {
+    urls: urlDatabase
+  };
+
+  let longURL = urlDatabase[req.params['shortURL']];
+  res.redirect(longURL);
 });
 
 //LOCALHOST:8080/${ID}
-app.get("/index/:id", (req, res) => {
-  const templateVars = { 
-  	shortURL: req.params.id 
+app.get("/url/:id", (req, res) => {
+  const userId = req.session.userId;
+  let user;
+  if (userId) {
+    user = database.users[userId];
+  }
+
+  const temp = {
+    urls: urlDatabase
   };
 
-  res.render("index_show", templateVars);
+  let shortURL = req.params.id;
+  let longURL = temp.shortURL;
+
+
+  res.render("index_show", { user, shortURL, longURL});
 });
 
-app.get("/index/:id/delete", (req, res) => {
-  res.redirect("/index");
+app.get("/:id/delete", (req, res) => {
+  res.redirect("/");
+});
+
+app.get('/signup', (req, res) => {
+  const userId = req.session.userId;
+  let user;
+  if (userId) {
+    user = database.users[userId];
+  }
+
+  const temp = {
+    urls: urlDatabase
+  };
+
+
+  res.render('index_signup', {user});
 });
 
 /*****************************************************************************************
@@ -120,13 +164,21 @@ app.get("/index/:id/delete", (req, res) => {
 
 *****************************************************************************************/
 app.post('/logout', (req, res) => {
-  	// const temp = {
-  	// 	urls: urlDatabase
-  	// };
 	req.session.userId = "";
   res.redirect('/');
+});
 
-	//res.render('index', { user, temp, urlDatabase });
+app.post('/signup', (req, res) => {
+  let randoId = generateRandomString();
+  database.users[randoId] = {
+    userId: randoId,
+    email: req.body['email'],
+    password: bcrypt.hashSync(req.body['password'], 10),
+  };
+
+  console.log(database.users);
+
+  res.redirect('/')
 });
 
 app.post('/login', (req, res) => {
@@ -146,25 +198,19 @@ app.post('/login', (req, res) => {
 
   if (user) {
 
-  	   //  console.log(
-      //   "EMAIL: " + email + 
-      //   "\n\n PASSWORD: " + password + 
-      //   "\n\n COMPARED WITH: " + user.password +
-      //   "\n\n USER: " + JSON.stringify(user) + 
-      //   "\n\n DATABASE.USERS: " + JSON.stringify(database.users) +
-     	// "\n\n BCRYPT: " + (bcrypt.compareSync(password, user.password)));
-
-  	    //FIXME BCRYPT
-    //if (bcrypt.compareSync(password, user.password)) {
-    if (password === user.password) {
+        console.log(user.password)
+    if (bcrypt.compareSync(password, user.password)) {
       req.session.userId = user.userId;
-	console.log("/login " + JSON.stringify(user));
+	    console.log("/login " + JSON.stringify(user));
       res.redirect('/');
+
     } else {
-      res.status(401).send("<h1>💩</h1>");
+      res.status(401).send("<h1>4💩1</h1>");
+
     }
   } else {
-    res.status(401).send("<h1>💩</h1>");
+    res.status(401).send("<h1>4💩1</h1>");
+
   }
 });
 
@@ -178,14 +224,14 @@ app.post("/", (req, res) => {
   	res.redirect("/");
 });
 
-app.post("/index/:id", (req, res) => {
+app.post("/url/:id", (req, res) => {
 	urlDatabase[req.params.id] = req.body['shortURL'];
-	res.redirect("/index");
+	res.redirect("/");
 });
 
-app.post("/index/:id/delete", (req, res) => {
+app.post("/url/:id/delete", (req, res) => {
 	delete urlDatabase[req.params.id];
-  	res.redirect("/index");
+  	res.redirect("/");
 });
 
 
@@ -211,4 +257,16 @@ function generateRandomString() {
     }
 
     return result;
+}
+
+function userHandler() {
+  const userId = req.session.userId;
+  let user;
+  if (userId) {
+    user = database.users[userId];
+  }
+
+  const temp = {
+    urls: urlDatabase
+  };
 }
