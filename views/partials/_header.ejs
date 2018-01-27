@@ -3,12 +3,53 @@
 <head>
   <title>TinyApp - Short URLS</title>
 </head>
-<body>
-<centre><h1>TinyAPP</h1></centre>
+<body style="font-size:20px; padding:50px;">
 <table>
+	<header><h2>TinyURL</h2></header>
 	<tr>
-	<td><h3><a href="http://localhost:8080/urls">TINY URLS</a></h3></td>
-	<td><h3><a href="http://localhost:8080/urls/new">NEW URL</a></h3></td>
-	<td><h3><a href="http://localhost:8080/urls.json">URL JSON</a></h3></td>
+
+	<% if (user !== undefined) { %>
+
+	<h3>Currently logged in as <%= user.email %></h3>
+
+	<td>
+      <form method="GET" action="/" >
+        <input type="submit" value="My URLS" style="height: 30px">
+      </form>
+    </td>
+
+	<td>
+      <form method="GET" action="/index/new"> 
+        <input type="submit" value="Add URL" style="height: 30px">
+      </form>
+    </td>
+
+	<td>
+      <form method="POST" action="/logout" >
+        <input type="submit" value="Log Out" style="height: 30px">
+      </form>
+    </td>
+
+
+    <% } else { %>
+
+	<td>
+      <form method="GET" action="/" >
+        <input type="submit" value="Log In" style="height: 30px">
+      </form>
+    </td>
+
+	<td>
+      <form method="GET" action="/signup" >
+        <input type="submit" value="Sign Up" style="height: 30px">
+      </form>
+    </td>
+
+
+    <% } %>
+
+
 	</tr>
+</table>
+
 </body>

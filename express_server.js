@@ -5,27 +5,41 @@
 
   BODY-PARSER https://www.npmjs.com/package/body-parser
 
+  COOKIE-PARSER https://www.npmjs.com/package/cookie-parser
+
 *****************************************************************************************/
 
-var express = require("express");
-var app = express();
-
+const express = require("express");
+const cookieSession = require('cookie-session');
+//const cookieParser = require('cookie-parser');
+//app.use(cookieParser());
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+const bcrypt = require('bcrypt');
+const database = require('./database');
 
+const app = express();
 app.set("view engine", "ejs");
 
-var PORT = process.env.PORT || 8080;
+app.use(bodyParser.urlencoded({extended: true}));
 
+app.use(cookieSession( {
+  name: 'session',
+  keys: [process.env.SECRET_KEY || 'dvelopment']
+}));
+
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`TinyApp is up and running on localhost:${PORT}!`);
 });
 
-var urlDatabase = {
+app.listen(3000);
+
+var user = database.users[""];
+
+const urlDatabase = {
   'b2xVn2': "http://www.lighthouselabs.ca",
   '9sm5xK': "http://www.google.com"
 };
-
 
 /*****************************************************************************************
 
@@ -38,40 +52,61 @@ var urlDatabase = {
 
 *****************************************************************************************/
 
+//LOCALHOST:8080/index
+app.get('/', (req, res) => {
+
+  //const userId = req.session.userId;
+  const userId = req.session.userId;
+  let user; 
+  if (userId) {
+    user = database.users[userId];
+  }
+
+  const temp = {
+    urls: urlDatabase
+  };
+
+  console.log("ENTERING - app.get('/', (req, res) => { \n\n"
+    //+ "\nuserId: " + user.userId
+    + "\nreq.session.userId: " + req.session.userId
+    //+ "\ndatabase.users[userId]: " + database.users[userId]
+    + "\nuser: " + JSON.stringify(user)
+    + "\ntemp: " + temp
+    + "\ntemp.urls: " + temp.urls
+    + "\ntemp['urls']: " + temp['urls']
+    + "\ntemp.urlDatabase: " + temp.urlDatabase
+    + "\ntemp['urlDatabase']: " + temp['urlDatabase']);
+
+  res.render('index', { user, temp, urlDatabase });
+});
+
 //LOCALHOST:8080/URLS.JSON
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-//LOCALHOST:8080/URLS
-app.get("/urls", (req, res) => {
-  const templateVars = { 
-  	urls: urlDatabase 
-  };
-
-  res.render("urls_index", templateVars);
-});
-
-//LOCALHOST:8080/URLS/NEW
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+//LOCALHOST:8080/INDEX/NEW
+app.get("/index/new", (req, res) => {
+  res.render("index_new");
 });
 
 //LOCALHOST:8080/U/${SHORTURL} : === "req.params"
 app.get("/u/:shortURL/", (req, res) => {
-
 	let longURL = urlDatabase[req.params['shortURL']];
-
 	res.redirect(longURL);
 });
 
 //LOCALHOST:8080/${ID}
-app.get("/urls/:id", (req, res) => {
+app.get("/index/:id", (req, res) => {
   const templateVars = { 
   	shortURL: req.params.id 
   };
 
-  res.render("urls_show", templateVars);
+  res.render("index_show", templateVars);
+});
+
+app.get("/index/:id/delete", (req, res) => {
+  res.redirect("/index");
 });
 
 /*****************************************************************************************
@@ -84,12 +119,75 @@ app.get("/urls/:id", (req, res) => {
  respond object - http://expressjs.com/en/api.html#res
 
 *****************************************************************************************/
+app.post('/logout', (req, res) => {
+  	// const temp = {
+  	// 	urls: urlDatabase
+  	// };
+	req.session.userId = "";
+  res.redirect('/');
 
-app.post("/urls", (req, res) => {
-  urlDatabase[generateRandomString()] = req.body['longURL'];
-  console.log(urlDatabase);
-  res.redirect("/urls");
+	//res.render('index', { user, temp, urlDatabase });
 });
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  let user;
+  for (let userId in database.users) {
+    const dbUser = database.users[userId];
+
+    if (dbUser.email === email) {
+      user = dbUser;
+
+      break;
+    }
+  }
+
+  if (user) {
+
+  	   //  console.log(
+      //   "EMAIL: " + email + 
+      //   "\n\n PASSWORD: " + password + 
+      //   "\n\n COMPARED WITH: " + user.password +
+      //   "\n\n USER: " + JSON.stringify(user) + 
+      //   "\n\n DATABASE.USERS: " + JSON.stringify(database.users) +
+     	// "\n\n BCRYPT: " + (bcrypt.compareSync(password, user.password)));
+
+  	    //FIXME BCRYPT
+    //if (bcrypt.compareSync(password, user.password)) {
+    if (password === user.password) {
+      req.session.userId = user.userId;
+	console.log("/login " + JSON.stringify(user));
+      res.redirect('/');
+    } else {
+      res.status(401).send("<h1>💩</h1>");
+    }
+  } else {
+    res.status(401).send("<h1>💩</h1>");
+  }
+});
+
+
+app.post("/", (req, res) => {
+	const temp = {
+  		urls: urlDatabase
+  	};
+
+	urlDatabase[generateRandomString()] = req.body['longURL'];
+  	res.redirect("/");
+});
+
+app.post("/index/:id", (req, res) => {
+	urlDatabase[req.params.id] = req.body['shortURL'];
+	res.redirect("/index");
+});
+
+app.post("/index/:id/delete", (req, res) => {
+	delete urlDatabase[req.params.id];
+  	res.redirect("/index");
+});
+
 
 /*****************************************************************************************
 
@@ -105,7 +203,7 @@ function generateRandomString() {
 	//Determines allowed elements for the string
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-    //console.log(`There are ${Math.pow(chars.length, length)} possible urls`)
+    //console.log(`There are ${Math.pow(chars.length, length)} possible url`)
 
     var result = '';
     for (var i = length; i > 0; --i) {

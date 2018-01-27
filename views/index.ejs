@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <header><% include partials/_header %></header>
+
+
+    <% if (user !== undefined) { %>
+
+<!--     JUST TESTING DATABASE RETRIEVALS -->
+    <%  for(var shortURL in temp.urls) { %>
+    <ul>
+
+      <strong><%= shortURL %> - <a href="<%= urlDatabase[shortURL] %>"><%= urlDatabase[shortURL] %></a></strong>
+
+      <form method="POST" action="/urls/<%= shortURL %>/delete">
+        <input type="submit" value="DELETE">
+      </form>
+
+      <form method="GET" action="/urls/<%= shortURL %>">
+        <input type="submit" value="EDIT">
+      </form>
+
+    </ul>
+
+    <%  } %>
+
+<!--     OTHERWISE USER MUST LOGIN -->
+    <% } else { %>
+      <form method="POST" action="/login"">
+      <p>
+        <label for="email-field">Email:</label>
+        <input id="email-field" name="email">
+      </p>
+      <p>
+        <label for="password-field">Password:</label>
+        <input id="password-field" name="password" type="password">
+      </p>
+      <p>
+        <input type="submit" value="Submit">
+      </p>
+      </form>
+    <% } %>
+</body>
+</html>

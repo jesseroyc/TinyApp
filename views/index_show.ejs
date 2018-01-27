@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  	<head>
+  	</head>
+
+  	<body style="font-size:20px; padding:50px;">
+
+	    <form action="/urls/<%= shortURL %>" method="POST" style="margin:150px;">
+	    <label for="shortURL"><h1>TinyURL: <%= shortURL %></h1></label>
+	   	<input id="shortURL" type="text" name="shortURL" placeholder="https://" style="width: 300px">
+	    <input type="submit" value="UPDATE">
+
+
+	    <table>
+			<tr>
+			<td><h3><a href="http://localhost:8080/urls">TINY URLS</a></h3></td>
+			<td><h3><a href="http://localhost:8080/urls/new">NEW URL</a></h3></td>
+			</tr>
+		</table>
+	    </form>
+  	</body>
+</html>
