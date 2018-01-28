@@ -34,10 +34,7 @@ app.listen(PORT, () => {
 
 app.listen(3000);
 
-const urlDatabase = {
-  'b2xVn2': "http://www.lighthouselabs.ca",
-  '9sm5xK': "http://www.google.com"
-};
+var userId;
 
 /*****************************************************************************************
 
@@ -49,67 +46,61 @@ const urlDatabase = {
  respond object - http://expressjs.com/en/api.html#res
 
 *****************************************************************************************/
-
-//LOCALHOST:8080/index
-app.get('/', (req, res) => {
-
-  const userId = req.session.userId;
-  let user;
-  if (userId) {
-    user = database.users[userId];
-  }
-
-  const temp = {
-    urls: urlDatabase
-  };
-
-  console.log("ENTERING - app.get('/', (req, res) => { \n\n"
-    //+ "\nuserId: " + user.userId
-    + "\nreq.session.userId: " + req.session.userId
-    //+ "\ndatabase.users[userId]: " + database.users[userId]
-    + "\nuser: " + JSON.stringify(user)
-    + "\ntemp: " + temp
-    + "\ntemp.urls: " + temp.urls
-    + "\ntemp['urls']: " + temp['urls']
-    + "\ntemp.urlDatabase: " + temp.urlDatabase
-    + "\ntemp['urlDatabase']: " + temp['urlDatabase']);
-
-  res.render('index', { user, temp, urlDatabase });
-});
-
 //LOCALHOST:8080/URLS.JSON
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+//LOCALHOST:8080/index
+app.get('/', (req, res) => {
+
+  let user;
+  var temp;
+  var urlDatabase;
+  if (userId) {
+    urlDatabase = database.users[userId].urlDatabase;
+    user = database.users[userId];
+    temp = {
+      urls: urlDatabase
+    };
+  console.log(userId);
+  console.log(user);
+    res.render('index', { user, temp, urlDatabase });
+  }
+
+  res.render('index', { user });
+});
+
+
 //LOCALHOST:8080/INDEX/NEW
 app.get("/new", (req, res) => {
 
-  const userId = req.session.userId;
   let user;
+  var temp;
+  var urlDatabase;
   if (userId) {
+    urlDatabase = database.users[userId].urlDatabase;
     user = database.users[userId];
+    temp = {
+      urls: urlDatabase
+    };
   }
-
-  const temp = {
-    urls: urlDatabase
-  };
-
 
   res.render("index_new", { user, temp, urlDatabase });
 });
 
 //LOCALHOST:8080/U/${SHORTURL} : === "req.params"
 app.get("/u/:shortURL/", (req, res) => {
-  const userId = req.session.userId;
   let user;
+  var temp;
+  var urlDatabase;
   if (userId) {
+    urlDatabase = database.users[userId].urlDatabase;
     user = database.users[userId];
+    temp = {
+      urls: urlDatabase
+    };
   }
-
-  const temp = {
-    urls: urlDatabase
-  };
 
   let longURL = urlDatabase[req.params['shortURL']];
   res.redirect(longURL);
@@ -117,15 +108,16 @@ app.get("/u/:shortURL/", (req, res) => {
 
 //LOCALHOST:8080/${ID}
 app.get("/url/:id", (req, res) => {
-  const userId = req.session.userId;
   let user;
+  var temp;
+  var urlDatabase;
   if (userId) {
+    urlDatabase = database.users[userId].urlDatabase;
     user = database.users[userId];
+    temp = {
+      urls: urlDatabase
+    };
   }
-
-  const temp = {
-    urls: urlDatabase
-  };
 
   let shortURL = req.params.id;
   let longURL = temp.shortURL;
@@ -139,16 +131,16 @@ app.get("/:id/delete", (req, res) => {
 });
 
 app.get('/signup', (req, res) => {
-  const userId = req.session.userId;
   let user;
+  var temp;
+  var urlDatabase;
   if (userId) {
+    urlDatabase = database.users[userId].urlDatabase;
     user = database.users[userId];
+    temp = {
+      urls: urlDatabase
+    };
   }
-
-  const temp = {
-    urls: urlDatabase
-  };
-
 
   res.render('index_signup', {user});
 });
@@ -164,7 +156,7 @@ app.get('/signup', (req, res) => {
 
 *****************************************************************************************/
 app.post('/logout', (req, res) => {
-	req.session.userId = "";
+	userId = undefined;
   res.redirect('/');
 });
 
@@ -174,9 +166,12 @@ app.post('/signup', (req, res) => {
     userId: randoId,
     email: req.body['email'],
     password: bcrypt.hashSync(req.body['password'], 10),
+    urlDatabase: { lilURL: 'http://www.lighthouselabs.ca'}
   };
 
-  console.log(database.users);
+  userId = randoId;
+
+  //console.log(database.users[randoId].urlDatabase);
 
   res.redirect('/')
 });
@@ -186,8 +181,8 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
 
   let user;
-  for (let userId in database.users) {
-    const dbUser = database.users[userId];
+  for (let userID in database.users) {
+    const dbUser = database.users[userID];
 
     if (dbUser.email === email) {
       user = dbUser;
@@ -198,10 +193,10 @@ app.post('/login', (req, res) => {
 
   if (user) {
 
-        console.log(user.password)
     if (bcrypt.compareSync(password, user.password)) {
       req.session.userId = user.userId;
-	    console.log("/login " + JSON.stringify(user));
+      userId = user.userId;
+	    //console.log("/login " + JSON.stringify(user));
       res.redirect('/');
 
     } else {
@@ -216,11 +211,21 @@ app.post('/login', (req, res) => {
 
 
 app.post("/", (req, res) => {
-	const temp = {
-  		urls: urlDatabase
-  	};
+  let user;
+  var temp;
+  var urlDatabase;
+  console.log(database.users)
+  console.log(userId)
+  if (userId) {
+    urlDatabase = database.users[userId].urlDatabase;
+    user = database.users[userId];
+    temp = {
+      urls: urlDatabase
+    };
 
-	urlDatabase[generateRandomString()] = req.body['longURL'];
+    urlDatabase[generateRandomString()] = req.body['longURL'];
+  }
+
   	res.redirect("/");
 });
 
@@ -229,7 +234,20 @@ app.post("/url/:id", (req, res) => {
 	res.redirect("/");
 });
 
-app.post("/url/:id/delete", (req, res) => {
+app.post("/:id/delete", (req, res) => {
+  let user;
+  var temp;
+  var urlDatabase;
+  console.log(database.users)
+  console.log(userId)
+  if (userId) {
+    urlDatabase = database.users[userId].urlDatabase;
+    user = database.users[userId];
+    temp = {
+      urls: urlDatabase
+    };
+  }
+
 	delete urlDatabase[req.params.id];
   	res.redirect("/");
 });
@@ -260,7 +278,7 @@ function generateRandomString() {
 }
 
 function userHandler() {
-  const userId = req.session.userId;
+  userId = req.session.userId;
   let user;
   if (userId) {
     user = database.users[userId];
