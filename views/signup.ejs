@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+</head>
+<body>
+
+
+  <% include partials/_header %>
+  <tr>
+    <td>
+      <form method="GET" action="/login" >
+        <input type="submit" value="Log In Now >" style="height: 30px">
+      </form>
+    </td>
+    
+  <h2>Create Account</h2>
+
+      <form method="POST" action="/signup"">
+        <p>
+        <label for="email-field">Email:</label>
+        <input id="email-field" name="email">
+        </p>
+          <p>
+            <label for="password-field">Password:</label>
+            <input id="password-field" name="password" type="password">
+          </p>
+        <p>
+          <input type="submit" value="signup">
+        </p>
+      </form>
+</body>
+</html>

@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-  	<head>
-  	</head>
+<head>
+
+</head>
 
   	<body style="font-size:20px; padding:50px;">
-  		  <header><% include partials/_header %></header>
-
-	    <form action="/<%= shortURL %>" method="POST" style="margin:150px;">
-        <label for="shortURL"><%= shortURL %> <strong>➡</strong></label>
-	   	<input id="shortURL" type="text" name="shortURL" placeholder="https://" style="width: 300px">
+	    <form action="/urls/<%= url %>" method="POST"">
+      <label for="url"><p><%= url %>:</p>
+        <p><%= long %><strong>➡</strong> ???</p></label>
+	   	<input id="newURL" type="text" name="newURL" placeholder="https://" style="width: 300px">
 	    <input type="submit" value="UPDATE">
 	    </form>
   	</body>
